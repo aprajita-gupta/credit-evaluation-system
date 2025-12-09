@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Evaluation System with Energy-Aware DVFS Integration — Analysis Results</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 0;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+            z-index: -1;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 30px 20px;
+            z-index: 100;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #14b8a6;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .nav-item {
+            display: block;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            background: rgba(20, 184, 166, 0.1);
+            color: #14b8a6;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+        }
+        
+        .container {
+            margin-left: 260px;
+            padding: 30px 40px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #14b8a6;
+        }
+        
+        .device-badge.cpu {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #14b8a6, #0d9488);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        
+        .stat-unit {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        
+        .stat-comparison {
+            margin-top: 8px;
+            font-size: 11px;
+            padding: 4px 8px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 4px;
+            color: #f87171;
+            display: inline-block;
+        }
+        
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #14b8a6;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(15, 23, 42, 0.6));
+            color: #14b8a6;
+            padding: 14px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+        }
+        
+        tr:hover {
+            background: rgba(20, 184, 166, 0.05);
+        }
+        
+        .highlight-value {
+            font-weight: 600;
+            color: #14b8a6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 10px 10px 0 0;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #cbd5e1;
+        }
+        
+        .actions {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .info-box {
+            padding: 14px 18px;
+            background: rgba(251, 191, 36, 0.05);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-left: 3px solid #fbbf24;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .info-box-title {
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Credit Evaluation System with Energy-Aware DVFS Integration</h1>
+            <p>ML-powered credit scoring with energy-aware DVFS insights</p>
+        </div>
+        <nav>
+            <a href="/" class="nav-item">🏠 Home</a>
+            <a href="/results" class="nav-item active">📊 Results</a>
+            <a href="/analytics" class="nav-item">📈 Analytics</a>
+            <a href="/dvfs" class="nav-item">⚡ DVFS</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        {% if no_results %}
+        <div class="header">
+            <h1>No Results Available</h1>
+            <p>Please run an analysis first.</p>
+        </div>
+        <div class="actions">
+            <a href="/" class="btn">← Back to Home</a>
+        </div>
+        {% else %}
+        
+        <div class="header">
+            <h1>📊 Analysis Results</h1>
+            <p>Model Performance & Energy Metrics</p>
+        </div>
+        
+        {% if device_type %}
+        <div class="device-badge {% if device_type == 'CPU' %}cpu{% endif %}">
+            <span>{% if device_type == 'GPU' %}🎮{% else %}💻{% endif %}</span>
+            <span>
+                {% if device_type == 'GPU' %}
+                    GPU Mode: {{ profile_name|title }}
+                    {% if profile_info %}({{ profile_info.core_freq_ghz }}GHz / {{ profile_info.voltage_v }}V){% endif %}
+                {% else %}
+                    CPU Mode: Local Processing
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if device_type == 'GPU' %}
+        <div class="info-box">
+            <div class="info-box-title">⚠️ Simulated GPU Metrics</div>
+            <div>You're not connected to actual DGX A100. These are realistic simulations based on NVIDIA A100 specs.</div>
+        </div>
+        {% endif %}
+        {% endif %}
+        
+        {% if enhanced_metrics %}
+        {% set total_energy = namespace(value=0) %}
+        {% set max_power = namespace(value=0) %}
+        {% set avg_power = namespace(value=0) %}
+        {% set count = namespace(value=0) %}
+        
+        {% for model_name, metrics in enhanced_metrics.items() %}
+            {% set total_energy.value = total_energy.value + metrics.energy_joules %}
+            {% if metrics.power_watts > max_power.value %}
+                {% set max_power.value = metrics.power_watts %}
+            {% endif %}
+            {% set avg_power.value = avg_power.value + metrics.power_watts %}
+            {% set count.value = count.value + 1 %}
+        {% endfor %}
+        
+        <div class="section">
+            <div class="section-title">⚡ Energy & Power Statistics</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Energy</div>
+                    <div class="stat-value">{{ "%.0f"|format(total_energy.value) }}</div>
+                    <div class="stat-unit">Joules</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Average Power</div>
+                    <div class="stat-value">{{ "%.0f"|format(avg_power.value / count.value) }}</div>
+                    <div class="stat-unit">Watts</div>
+                    {% if device_type == 'GPU' %}
+                    <div class="stat-comparison">7x higher than CPU</div>
+                    {% endif %}
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Peak Power</div>
+                    <div class="stat-value">{{ "%.0f"|format(max_power.value) }}</div>
+                    <div class="stat-unit">Watts</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Models Trained</div>
+                    <div class="stat-value">{{ count.value }}</div>
+                    <div class="stat-unit">Algorithms</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="section">
+            <div class="section-title">🎯 Model Performance</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model_name in results %}
+                    {% if model_name not in ['y_test', 'X_test', 'feature_names'] %}
+                    {% set r = results[model_name] %}
+                    <tr>
+                        <td><strong>{{ model_name }}</strong></td>
+                        <td class="highlight-value">{{ "%.4f"|format(r.accuracy|default(0)) }}</td>
+                        <td>{{ "%.4f"|format(r.precision|default(0)) }}</td>
+                        <td>{{ "%.4f"|format(r.recall|default(0)) }}</td>
+                        <td>{{ "%.4f"|format(r.f1|default(0)) }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if enhanced_metrics %}
+        <div class="section">
+            <div class="section-title">⚡ DVFS Energy Breakdown</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Energy (J)</th>
+                        <th>Power (W)</th>
+                        {% if device_type == 'GPU' %}
+                        <th>Core (W)</th>
+                        <th>Memory (W)</th>
+                        <th>Static (W)</th>
+                        <th>Thermal (W)</th>
+                        {% else %}
+                        <th>Dynamic (W)</th>
+                        <th>Static (W)</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model_name, metrics in enhanced_metrics.items() %}
+                    <tr>
+                        <td><strong>{{ model_name }}</strong></td>
+                        <td class="highlight-value">{{ "%.2f"|format(metrics.energy_joules) }}</td>
+                        <td class="highlight-value">{{ "%.2f"|format(metrics.power_watts) }}</td>
+                        {% if device_type == 'GPU' %}
+                        <td>{{ "%.2f"|format(metrics.core_power) }}</td>
+                        <td>{{ "%.2f"|format(metrics.memory_power) }}</td>
+                        <td>{{ "%.2f"|format(metrics.static_power) }}</td>
+                        <td>{{ "%.2f"|format(metrics.thermal_watts) }}</td>
+                        {% else %}
+                        <td>{{ "%.2f"|format(metrics.dynamic_power) }}</td>
+                        <td>{{ "%.2f"|format(metrics.static_power) }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <!-- Visualizations -->
+        {% if plot_files %}
+        <div class="section">
+            <div class="section-title">📊 Performance Visualizations</div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: #f1f5f9; font-size: 16px; margin-bottom: 12px;">Model Accuracy Comparison</h3>
+                <img src="{{ url_for('static', filename=plot_files.accuracy) }}" alt="Accuracy Comparison" style="width: 100%; border-radius: 8px;">
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: #f1f5f9; font-size: 16px; margin-bottom: 12px;">Precision and Recall</h3>
+                <img src="{{ url_for('static', filename=plot_files.precision_recall) }}" alt="Precision and Recall" style="width: 100%; border-radius: 8px;">
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: #f1f5f9; font-size: 16px; margin-bottom: 12px;">Inference Time Comparison</h3>
+                <img src="{{ url_for('static', filename=plot_files.inference_time) }}" alt="Inference Time" style="width: 100%; border-radius: 8px;">
+                <p style="color: #64748b; margin-top: 8px; font-size: 13px;">
+                    Lower inference time means faster predictions.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: #f1f5f9; font-size: 16px; margin-bottom: 12px;">Energy Consumption</h3>
+                <img src="{{ url_for('static', filename=plot_files.energy) }}" alt="Energy Consumption" style="width: 100%; border-radius: 8px;">
+                <p style="color: #64748b; margin-top: 8px; font-size: 13px;">
+                    Energy estimates from execution times. Lower values indicate more efficient models.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: #f1f5f9; font-size: 16px; margin-bottom: 12px;">Energy vs Accuracy Trade-off</h3>
+                <img src="{{ url_for('static', filename=plot_files.tradeoff) }}" alt="Energy vs Accuracy" style="width: 100%; border-radius: 8px;">
+                <p style="color: #64748b; margin-top: 8px; font-size: 13px;">
+                    Balance between accuracy and energy. Top-left corner = best trade-off.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: #f1f5f9; font-size: 16px; margin-bottom: 12px;">Confusion Matrices</h3>
+                <img src="{{ url_for('static', filename=plot_files.confusion) }}" alt="Confusion Matrices" style="width: 100%; border-radius: 8px;">
+                <p style="color: #64748b; margin-top: 8px; font-size: 13px;">
+                    Shows classification performance. Higher diagonal values = better predictions.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="actions">
+            <a href="/" class="btn">← Run Another Analysis</a>
+            <a href="/download/{{ csv_file }}" class="btn btn-secondary">📥 Download CSV</a>
+            {% if dvfs_available %}
+            <a href="/api/dvfs_statistics" class="btn btn-secondary" target="_blank">📊 DVFS Stats</a>
+            {% endif %}
+        </div>
+        
+        {% endif %}
+    </div>
+</body>
+</html>

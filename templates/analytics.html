@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Credit Evaluation System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 0;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%),
+                radial-gradient(circle at 20% 50%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 30px 20px;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            margin-bottom: 40px;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #14b8a6;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            background: rgba(20, 184, 166, 0.1);
+            color: #14b8a6;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+        }
+        
+        .nav-item:hover:not(.active) {
+            background: rgba(148, 163, 184, 0.05);
+            color: #cbd5e1;
+        }
+        
+        .container {
+            margin-left: 260px;
+            padding: 30px 40px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+        
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(15, 23, 42, 0.4) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(20, 184, 166, 0.2);
+        }
+        
+        .metric-card h4 {
+            color: #14b8a6;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        
+        .metric-card .label {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        
+        .info-box {
+            background: rgba(20, 184, 166, 0.08);
+            border-left: 3px solid #14b8a6;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        .info-box p {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+        }
+        
+        .comparison-chart {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .bar-label {
+            width: 150px;
+            font-size: 14px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        
+        .bar-fill {
+            flex: 1;
+            height: 32px;
+            background: linear-gradient(90deg, #14b8a6, rgba(20, 184, 166, 0.3));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .bar-fill:hover {
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Energy-Efficient GNNs</h1>
+            <p>Credit Scoring + DVFS Lab</p>
+        </div>
+        
+        <div class="nav-item" onclick="window.location.href='/'">⚡ Dashboard</div>
+        <div class="nav-item" onclick="window.location.href='/dvfs'">⚙️ DVFS</div>
+        <div class="nav-item active">📊 Analytics</div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📊 Analytics Dashboard</h1>
+            <p>Performance metrics and DVFS analysis across model types</p>
+        </div>
+        
+        <div class="info-box">
+            <p><strong>Welcome to Analytics!</strong> This page provides detailed insights into model performance, energy consumption, and DVFS trade-offs.</p>
+            <p>Run an analysis from the Dashboard to see comparative metrics here.</p>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Model Performance Overview</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>Avg Accuracy</h4>
+                    <div class="value">~80%</div>
+                    <div class="label">Across Models</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Total Models</h4>
+                    <div class="value">3-4</div>
+                    <div class="label">ML Algorithms</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Energy Range</h4>
+                    <div class="value">0.1-0.5</div>
+                    <div class="label">Joules</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Inference Speed</h4>
+                    <div class="value">&lt;50ms</div>
+                    <div class="label">Average</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">DVFS Impact Analysis</h2>
+            
+            <div class="comparison-chart">
+                <h3 style="color: #14b8a6; margin-bottom: 16px; font-size: 16px;">Energy Consumption by DVFS Level</h3>
+                <div class="bar-chart">
+                    <div class="bar-item">
+                        <div class="bar-label">0.5x (Power Saver)</div>
+                        <div class="bar-fill" style="width: 40%;">Low - 0.08 J</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">1.0x (Balanced)</div>
+                        <div class="bar-fill" style="width: 60%;">Medium - 0.15 J</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">2.0x (Performance)</div>
+                        <div class="bar-fill" style="width: 100%;">High - 0.40 J</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comparison-chart">
+                <h3 style="color: #3b82f6; margin-bottom: 16px; font-size: 16px;">Inference Time by DVFS Level</h3>
+                <div class="bar-chart">
+                    <div class="bar-item">
+                        <div class="bar-label">0.5x (Power Saver)</div>
+                        <div class="bar-fill" style="width: 100%; background: linear-gradient(90deg, #3b82f6, rgba(59, 130, 246, 0.3));">Slow - 100 ms</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">1.0x (Balanced)</div>
+                        <div class="bar-fill" style="width: 50%; background: linear-gradient(90deg, #3b82f6, rgba(59, 130, 246, 0.3));">Normal - 50 ms</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">2.0x (Performance)</div>
+                        <div class="bar-fill" style="width: 25%; background: linear-gradient(90deg, #3b82f6, rgba(59, 130, 246, 0.3));">Fast - 25 ms</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Model Comparison</h2>
+            
+            <div class="comparison-chart">
+                <h3 style="color: #10b981; margin-bottom: 16px; font-size: 16px;">Typical Accuracy by Model</h3>
+                <div class="bar-chart">
+                    <div class="bar-item">
+                        <div class="bar-label">Logistic Regression</div>
+                        <div class="bar-fill" style="width: 82%; background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.3));">82%</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">SVM</div>
+                        <div class="bar-fill" style="width: 80%; background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.3));">80%</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">Decision Tree</div>
+                        <div class="bar-fill" style="width: 78%; background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.3));">78%</div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">Deep Neural Network</div>
+                        <div class="bar-fill" style="width: 84%; background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.3));">84%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Key Insights</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div style="background: rgba(20, 184, 166, 0.08); padding: 16px; border-radius: 8px; border-left: 3px solid #14b8a6;">
+                    <h4 style="color: #14b8a6; margin-bottom: 8px;">💡 Energy Efficiency</h4>
+                    <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">Logistic Regression offers the best energy-accuracy trade-off for most use cases, consuming ~40% less energy than DNNs with comparable accuracy.</p>
+                </div>
+                <div style="background: rgba(59, 130, 246, 0.08); padding: 16px; border-radius: 8px; border-left: 3px solid #3b82f6;">
+                    <h4 style="color: #3b82f6; margin-bottom: 8px;">⚡ Performance</h4>
+                    <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">Using DVFS at 2.0x doubles inference speed but triples energy consumption - ideal for latency-critical applications.</p>
+                </div>
+                <div style="background: rgba(139, 92, 246, 0.08); padding: 16px; border-radius: 8px; border-left: 3px solid #8b5cf6;">
+                    <h4 style="color: #8b5cf6; margin-bottom: 8px;">🎯 Accuracy</h4>
+                    <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">DNNs achieve highest accuracy (~84%) but require 3-5x more training time. Consider the trade-off based on your priorities.</p>
+                </div>
+                <div style="background: rgba(236, 72, 153, 0.08); padding: 16px; border-radius: 8px; border-left: 3px solid #ec4899;">
+                    <h4 style="color: #ec4899; margin-bottom: 8px;">💰 Cost-Benefit</h4>
+                    <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">For production deployments, balanced DVFS (1.0x) with SVM provides optimal cost-performance across metrics.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <a href="/" class="btn">← Back to Dashboard</a>
+            <a href="/dvfs" class="btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">Configure DVFS →</a>
+        </div>
+    </div>
+    
+    <!-- Coming Soon Modal -->
+    <div id="comingSoonModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); padding: 40px; border-radius: 16px; border: 1px solid rgba(20, 184, 166, 0.3); max-width: 500px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🚀</div>
+            <h2 style="color: #14b8a6; margin-bottom: 15px; font-size: 24px;">Coming Soon</h2>
+            <p style="color: #cbd5e1; margin-bottom: 10px; font-size: 16px;" id="featureName"></p>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 30px;">This feature is currently under development.</p>
+            <button onclick="closeComingSoon()" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Got it!</button>
+        </div>
+    </div>
+    
+    <script>
+        function showComingSoon(feature) {
+            document.getElementById('featureName').textContent = feature + ' Feature';
+            document.getElementById('comingSoonModal').style.display = 'flex';
+        }
+        
+        function closeComingSoon() {
+            document.getElementById('comingSoonModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

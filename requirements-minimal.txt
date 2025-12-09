@@ -1,0 +1,12 @@
+# Minimal Requirements (Without TensorFlow)
+# Use this for quick testing or if TensorFlow installation fails
+# The DNN model will be skipped, but other 3 models will work
+
+flask==3.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+werkzeug==3.0.1
+psutil>=5.9.0

@@ -1,0 +1,6 @@
+Model,CV_Accuracy,Val_Accuracy,Test_Accuracy,Precision,Recall,F1_Score,Training_Time_s,Inference_Time_ms,Energy_Estimate_J,SHAP_Available
+Logistic Regression,0.9850 ± 0.0073,0.9875,0.9750,0.9851,0.9659,0.9754,0.0104,0.2870,0.1025,Yes
+SVM,0.9425 ± 0.0193,0.9450,0.9600,0.9655,0.9561,0.9608,0.4235,46.4907,0.5284,No
+Decision Tree,0.7283 ± 0.0193,0.7200,0.6925,0.7092,0.6780,0.6933,0.0605,0.5081,0.1042,Yes
+Random Forest,0.8625 ± 0.0228,0.8675,0.8675,0.8689,0.8732,0.8710,3.0327,155.8236,1.1830,Yes
+Deep Neural Network,N/A,0.9725,0.9675,0.9571,0.9805,0.9687,13.7707,196.9934,1.3361,Yes

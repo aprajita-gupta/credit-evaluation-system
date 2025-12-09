@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Evaluation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%),
+                radial-gradient(circle at 20% 50%, rgba(20, 184, 166, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 30px 20px;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            margin-bottom: 40px;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #14b8a6;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .nav-item.active {
+            background: rgba(20, 184, 166, 0.1);
+            color: #14b8a6;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+        }
+        
+        .nav-item:hover:not(.active) {
+            background: rgba(148, 163, 184, 0.05);
+            color: #cbd5e1;
+        }
+        
+        .container {
+            margin-left: 260px;
+            padding: 30px 40px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #14b8a6;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .form-select:focus,
+        .form-input:focus {
+            outline: none;
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+        }
+        
+        .form-select option {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .checkbox-group:hover {
+            border-color: rgba(20, 184, 166, 0.4);
+            background: rgba(15, 23, 42, 0.6);
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #14b8a6;
+        }
+        
+        .checkbox-group label {
+            font-size: 14px;
+            color: #cbd5e1;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .profile-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        .profile-card {
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .profile-card:hover {
+            border-color: rgba(20, 184, 166, 0.4);
+            background: rgba(15, 23, 42, 0.6);
+        }
+        
+        .profile-card.selected {
+            border-color: #14b8a6;
+            background: rgba(20, 184, 166, 0.1);
+        }
+        
+        .profile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .profile-card-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #14b8a6;
+        }
+        
+        .profile-badge {
+            padding: 2px 8px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #22c55e;
+            text-transform: uppercase;
+        }
+        
+        .profile-specs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .profile-spec {
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        .profile-spec-value {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        .profile-description {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+        
+        .info-box {
+            padding: 12px 16px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .info-box-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 4px;
+        }
+        
+        .info-box-text {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 12px;
+            border: 3px solid rgba(20, 184, 166, 0.2);
+            border-top-color: #14b8a6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            display: none;
+            padding: 12px 16px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Credit Eval</h1>
+            <p>ML-Powered Analysis</p>
+        </div>
+        
+        <nav>
+            <a href="/" class="nav-item active">🏠 Home</a>
+            <a href="/results" class="nav-item">📊 Results</a>
+            <a href="/analytics" class="nav-item">📈 Analytics</a>
+            <a href="/dvfs" class="nav-item">⚡ DVFS</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Credit Evaluation System</h1>
+            <p>Advanced ML analysis with GPU-accelerated DVFS optimization</p>
+        </div>
+
+        <form id="analysisForm">
+            <!-- Device Selection -->
+            <div class="section">
+                <div class="section-title">
+                    🎮 Computing Device
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Hardware</label>
+                    <select id="device_type" name="device_type" class="form-select">
+                        <option value="GPU">🎮 GPU (NVIDIA A100 - 10GB) - Simulated</option>
+                        <option value="CPU" selected>💻 CPU (Local Processing)</option>
+                    </select>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-box-title">💡 Note</div>
+                    <div class="info-box-text">
+                        GPU mode will show simulated A100 metrics since you're not connected to the server yet. 
+                        CPU mode shows real local measurements.
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPU DVFS Profiles -->
+            <div class="section" id="gpu_section" style="display: none;">
+                <div class="section-title">
+                    ⚡ GPU DVFS Profile
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Frequency & Voltage Profile</label>
+                    <div class="profile-cards">
+                        <div class="profile-card" data-profile="power_save">
+                            <div class="profile-card-header">
+                                <span class="profile-card-name">Power Save</span>
+                            </div>
+                            <div class="profile-specs">
+                                <span class="profile-spec">Core: <span class="profile-spec-value">0.8 GHz</span></span>
+                                <span class="profile-spec">Mem: <span class="profile-spec-value">0.8 GHz</span></span>
+                                <span class="profile-spec">V: <span class="profile-spec-value">0.85V</span></span>
+                            </div>
+                            <div class="profile-description">
+                                Max energy efficiency: 19.6-26.4% savings
+                            </div>
+                        </div>
+                        
+                        <div class="profile-card selected" data-profile="balanced">
+                            <div class="profile-card-header">
+                                <span class="profile-card-name">Balanced</span>
+                                <span class="profile-badge">Recommended</span>
+                            </div>
+                            <div class="profile-specs">
+                                <span class="profile-spec">Core: <span class="profile-spec-value">1.0 GHz</span></span>
+                                <span class="profile-spec">Mem: <span class="profile-spec-value">1.0 GHz</span></span>
+                                <span class="profile-spec">V: <span class="profile-spec-value">1.0V</span></span>
+                            </div>
+                            <div class="profile-description">
+                                Optimal balance: 8.7-23.1% savings
+                            </div>
+                        </div>
+                        
+                        <div class="profile-card" data-profile="performance">
+                            <div class="profile-card-header">
+                                <span class="profile-card-name">Performance</span>
+                            </div>
+                            <div class="profile-specs">
+                                <span class="profile-spec">Core: <span class="profile-spec-value">1.2 GHz</span></span>
+                                <span class="profile-spec">Mem: <span class="profile-spec-value">1.1 GHz</span></span>
+                                <span class="profile-spec">V: <span class="profile-spec-value">1.15V</span></span>
+                            </div>
+                            <div class="profile-description">
+                                17.4-38.2% faster training
+                            </div>
+                        </div>
+                        
+                        <div class="profile-card" data-profile="max_performance">
+                            <div class="profile-card-header">
+                                <span class="profile-card-name">Max Performance</span>
+                            </div>
+                            <div class="profile-specs">
+                                <span class="profile-spec">Core: <span class="profile-spec-value">1.5 GHz</span></span>
+                                <span class="profile-spec">Mem: <span class="profile-spec-value">1.2 GHz</span></span>
+                                <span class="profile-spec">V: <span class="profile-spec-value">1.25V</span></span>
+                            </div>
+                            <div class="profile-description">
+                                22.5-33.0% faster inference
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="profile_name" name="profile_name" value="balanced">
+                </div>
+            </div>
+
+            <!-- DRL Control -->
+            <div class="section" id="drl_section" style="display: none;">
+                <div class="section-title">
+                    🤖 Deep Reinforcement Learning
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="use_drl" name="use_drl">
+                    <label for="use_drl">
+                        Enable DRL-based adaptive DVFS control (learns optimal settings automatically)
+                    </label>
+                </div>
+                
+                <div class="info-box" style="margin-top: 12px;">
+                    <div class="info-box-title">How it works</div>
+                    <div class="info-box-text">
+                        The DRL agent learns to select optimal DVFS profiles based on workload characteristics,
+                        power budget, and performance requirements. It balances energy efficiency with performance automatically.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SHAP -->
+            <div class="section">
+                <div class="section-title">
+                    🔍 Model Explainability
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="compute_shap" name="compute_shap" checked>
+                    <label for="compute_shap">
+                        Enable SHAP explainability (understand model decisions)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Hidden fields -->
+            <input type="hidden" id="dvfs_level" name="dvfs_level" value="1.0">
+
+            <!-- Submit -->
+            <button type="submit" class="btn-primary">
+                🚀 Run Analysis
+            </button>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                <p style="color: #64748b;">Running analysis with selected configuration...</p>
+            </div>
+
+            <div class="error-message" id="error_message"></div>
+        </form>
+    </div>
+
+    <script>
+        // Device type toggle
+        document.getElementById('device_type').addEventListener('change', function() {
+            const gpuSection = document.getElementById('gpu_section');
+            const drlSection = document.getElementById('drl_section');
+            
+            if (this.value === 'GPU') {
+                gpuSection.style.display = 'block';
+                drlSection.style.display = 'block';
+            } else {
+                gpuSection.style.display = 'none';
+                drlSection.style.display = 'none';
+            }
+        });
+
+        // Profile card selection
+        document.querySelectorAll('.profile-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.profile-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                document.getElementById('profile_name').value = this.dataset.profile;
+            });
+        });
+
+        // Form submission
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error_message');
+            errorDiv.style.display = 'none';
+            
+            const formData = {
+                device_type: document.getElementById('device_type').value,
+                profile_name: document.getElementById('profile_name').value,
+                use_drl: document.getElementById('use_drl').checked,
+                compute_shap: document.getElementById('compute_shap').checked,
+                dvfs_level: parseFloat(document.getElementById('dvfs_level').value)
+            };
+            
+            const submitBtn = document.querySelector('.btn-primary');
+            submitBtn.disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/run_analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    window.location.href = data.redirect;
+                } else {
+                    errorDiv.textContent = data.message || 'Analysis failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error: ' + error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

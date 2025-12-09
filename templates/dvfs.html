@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVFS Configuration - Credit Evaluation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%),
+                radial-gradient(circle at 20% 50%, rgba(20, 184, 166, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 30px 20px;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            margin-bottom: 40px;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #14b8a6;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            background: rgba(20, 184, 166, 0.1);
+            color: #14b8a6;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+        }
+        
+        .nav-item:hover:not(.active) {
+            background: rgba(148, 163, 184, 0.05);
+            color: #cbd5e1;
+        }
+        
+        .container {
+            margin-left: 260px;
+            padding: 30px 40px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: -1px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-left: 40px;
+        }
+        
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .dvfs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .dvfs-preset {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(15, 23, 42, 0.4) 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid rgba(148, 163, 184, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .dvfs-preset:hover {
+            border-color: rgba(20, 184, 166, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(20, 184, 166, 0.2);
+        }
+        
+        .dvfs-preset.selected {
+            border-color: #14b8a6;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(15, 23, 42, 0.6) 100%);
+        }
+        
+        .preset-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .preset-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #14b8a6;
+            margin-bottom: 8px;
+        }
+        
+        .preset-level {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+        
+        .preset-description {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        
+        .info-box {
+            background: rgba(20, 184, 166, 0.08);
+            border-left: 3px solid #14b8a6;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .stat-item {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #14b8a6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Energy-Efficient GNNs</h1>
+            <p>Credit Scoring + DVFS Lab</p>
+        </div>
+        
+        <div class="nav-item" onclick="window.location.href='/'">⚡ Dashboard</div>
+        <div class="nav-item active">⚙️ DVFS</div>
+        <div class="nav-item" onclick="window.location.href='/analytics'">📊 Analytics</div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <span style="font-size: 28px;">⚙️</span>
+                <h1>DVFS Configuration</h1>
+            </div>
+            <p>Dynamic Voltage and Frequency Scaling for energy-efficient model execution</p>
+        </div>
+        
+        <div class="info-box">
+            <strong>What is DVFS?</strong> Dynamic Voltage and Frequency Scaling allows you to trade processing speed for energy efficiency. Lower settings reduce power consumption but increase execution time, while higher settings provide faster performance at the cost of more energy.
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Preset Configurations</h2>
+            
+            <div class="dvfs-grid">
+                <div class="dvfs-preset" onclick="selectPreset(0.5, this)">
+                    <div class="preset-icon">🔋</div>
+                    <div class="preset-name">Power Saver</div>
+                    <div class="preset-level">0.5x</div>
+                    <div class="preset-description">Maximum energy efficiency. Ideal for battery-powered devices or when power consumption is critical.</div>
+                </div>
+                
+                <div class="dvfs-preset selected" onclick="selectPreset(1.0, this)">
+                    <div class="preset-icon">⚖️</div>
+                    <div class="preset-name">Balanced</div>
+                    <div class="preset-level">1.0x</div>
+                    <div class="preset-description">Optimal balance between performance and energy consumption. Recommended for most use cases.</div>
+                </div>
+                
+                <div class="dvfs-preset" onclick="selectPreset(2.0, this)">
+                    <div class="preset-icon">⚡</div>
+                    <div class="preset-name">Performance</div>
+                    <div class="preset-level">2.0x</div>
+                    <div class="preset-description">Maximum performance mode. Faster execution at higher energy cost. Use when speed is priority.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Current Configuration</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Speed Multiplier</div>
+                    <div class="stat-value" id="currentLevel">1.0x</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Power Profile</div>
+                    <div class="stat-value" id="currentProfile">Balanced</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Est. Power Consumption</div>
+                    <div class="stat-value" id="estPower">15.0 W</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Relative Performance</div>
+                    <div class="stat-value" id="relPerf">100%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Energy Formula</h2>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 8px; margin-bottom: 16px; font-family: 'Courier New', monospace; color: #14b8a6;">
+                <div style="margin-bottom: 12px;">Energy (J) = Power × Time + Overhead</div>
+                <div style="margin-bottom: 12px;">Power (W) = Base_Power × (DVFS_level)<sup>2.5</sup></div>
+                <div>Time (s) = Measured_Time / DVFS_level</div>
+            </div>
+            <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
+                The energy model simulates hardware frequency/voltage scaling. Power consumption scales superlinearly with DVFS level (exponent 2.5), while execution time scales inversely. This creates a non-linear trade-off between speed and energy efficiency.
+            </p>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">💡 Energy Calculator</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">
+                Calculate estimated energy consumption for your inference workload.
+            </p>
+            
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 24px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px;">
+                    <div>
+                        <label style="display: block; color: #94a3b8; font-size: 13px; margin-bottom: 8px;">
+                            Inference Time (milliseconds)
+                        </label>
+                        <input type="number" id="calcInferenceTime" value="5" min="0.1" step="0.1" 
+                            style="width: 100%; padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; color: #f1f5f9; font-size: 14px;"
+                            onchange="calculateEnergy()">
+                    </div>
+                    <div>
+                        <label style="display: block; color: #94a3b8; font-size: 13px; margin-bottom: 8px;">
+                            DVFS Level
+                        </label>
+                        <select id="calcDvfsLevel" onchange="calculateEnergy()"
+                            style="width: 100%; padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; color: #f1f5f9; font-size: 14px;">
+                            <option value="0.5">0.5x (Power Saver)</option>
+                            <option value="1.0" selected>1.0x (Balanced)</option>
+                            <option value="2.0">2.0x (Performance)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 20px; background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(15, 23, 42, 0.4) 100%); border-radius: 8px; border: 1px solid rgba(20, 184, 166, 0.3);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Energy</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #14b8a6;" id="calcEnergy">0.200 J</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Power</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #3b82f6;" id="calcPower">20.0 W</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Adjusted Time</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #f59e0b;" id="calcTime">5.0 ms</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6; border-radius: 4px; font-size: 13px; color: #cbd5e1;">
+                    <strong>Note:</strong> These are estimates based on the physics-based DVFS model. Actual values may vary by ±15% depending on hardware and workload.
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="applyAndReturn()">Apply Configuration & Return to Dashboard</button>
+    </div>
+    
+    <!-- Coming Soon Modal -->
+    <div id="comingSoonModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); padding: 40px; border-radius: 16px; border: 1px solid rgba(20, 184, 166, 0.3); max-width: 500px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🚀</div>
+            <h2 style="color: #14b8a6; margin-bottom: 15px; font-size: 24px;">Coming Soon</h2>
+            <p style="color: #cbd5e1; margin-bottom: 10px; font-size: 16px;" id="featureName"></p>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 30px;">This feature is currently under development and will be available in a future update.</p>
+            <button onclick="closeComingSoon()" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Got it!</button>
+        </div>
+    </div>
+    
+    <!-- Success Notification -->
+    <div id="successNotification" style="display: none; position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 8px 24px rgba(20, 184, 166, 0.4); z-index: 2000; font-size: 14px; font-weight: 600;">
+        ✅ DVFS Configuration Saved!
+    </div>
+    
+    <script>
+        let selectedLevel = 1.0;
+        
+        // Energy calculation function
+        function calculateEnergy() {
+            const inferenceTimeMs = parseFloat(document.getElementById('calcInferenceTime').value) || 5.0;
+            const dvfsLevel = parseFloat(document.getElementById('calcDvfsLevel').value) || 1.0;
+            
+            // Convert ms to seconds
+            const baseTime = inferenceTimeMs / 1000.0;
+            
+            // Calculate adjusted time (inversely proportional to DVFS)
+            const adjustedTime = baseTime / dvfsLevel;
+            
+            // Calculate power (superlinear with DVFS^2.5)
+            const basePower = 15.0; // W
+            const idlePower = 5.0;  // W
+            const dynamicPower = basePower * Math.pow(dvfsLevel, 2.5);
+            const staticPower = idlePower * (1 + 0.1 * (dvfsLevel - 1.0));
+            const totalPower = dynamicPower + staticPower;
+            
+            // Calculate energy
+            const overhead = 0.1; // J
+            const energy = totalPower * adjustedTime + overhead;
+            
+            // Update display
+            document.getElementById('calcEnergy').textContent = energy.toFixed(4) + ' J';
+            document.getElementById('calcPower').textContent = totalPower.toFixed(1) + ' W';
+            document.getElementById('calcTime').textContent = (adjustedTime * 1000).toFixed(2) + ' ms';
+        }
+        
+        function selectPreset(level, element) {
+            selectedLevel = level;
+            
+            // Update visual selection
+            document.querySelectorAll('.dvfs-preset').forEach(preset => {
+                preset.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked element
+            if (element) {
+                element.classList.add('selected');
+            }
+            
+            // Update stats
+            document.getElementById('currentLevel').textContent = level.toFixed(1) + 'x';
+            
+            let profile = 'Balanced';
+            if (level < 1.0) profile = 'Power Saver';
+            if (level > 1.0) profile = 'Performance';
+            document.getElementById('currentProfile').textContent = profile;
+            
+            // Power = 15W * (level^2.5)
+            let power = 15.0 * Math.pow(level, 2.5);
+            document.getElementById('estPower').textContent = power.toFixed(1) + ' W';
+            
+            // Performance percentage
+            let perf = (level * 100).toFixed(0);
+            document.getElementById('relPerf').textContent = perf + '%';
+            
+            // Store in localStorage
+            localStorage.setItem('dvfs_level', level);
+            
+            // Show success notification briefly
+            showSuccessNotification();
+        }
+        
+        function applyAndReturn() {
+            // Save the current selection
+            localStorage.setItem('dvfs_level', selectedLevel);
+            
+            // Show confirmation
+            showSuccessNotification();
+            
+            // Return to dashboard after brief delay
+            setTimeout(function() {
+                window.location.href = '/';
+            }, 800);
+        }
+        
+        function showSuccessNotification() {
+            const notification = document.getElementById('successNotification');
+            notification.style.display = 'block';
+            
+            // Hide after 2 seconds
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+        
+        function showComingSoon(feature) {
+            document.getElementById('featureName').textContent = feature + ' Feature';
+            document.getElementById('comingSoonModal').style.display = 'flex';
+        }
+        
+        function closeComingSoon() {
+            document.getElementById('comingSoonModal').style.display = 'none';
+        }
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeComingSoon();
+            }
+        });
+        
+        // Close modal on background click
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('comingSoonModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeComingSoon();
+                    }
+                });
+            }
+        });
+        
+        // Load saved DVFS level on page load
+        window.addEventListener('load', function() {
+            // Calculate initial energy
+            calculateEnergy();
+            
+            const saved = localStorage.getItem('dvfs_level');
+            if (saved) {
+                const level = parseFloat(saved);
+                selectedLevel = level;
+                
+                // Find and select the right preset
+                const presets = document.querySelectorAll('.dvfs-preset');
+                const levels = [0.5, 1.0, 2.0];
+                
+                presets.forEach((preset, idx) => {
+                    if (Math.abs(levels[idx] - level) < 0.01) {
+                        preset.classList.add('selected');
+                    } else {
+                        preset.classList.remove('selected');
+                    }
+                });
+                
+                // Update the display without triggering another save
+                document.getElementById('currentLevel').textContent = level.toFixed(1) + 'x';
+                
+                let profile = 'Balanced';
+                if (level < 1.0) profile = 'Power Saver';
+                if (level > 1.0) profile = 'Performance';
+                document.getElementById('currentProfile').textContent = profile;
+                
+                let power = 15.0 * Math.pow(level, 2.5);
+                document.getElementById('estPower').textContent = power.toFixed(1) + ' W';
+                
+                let perf = (level * 100).toFixed(0);
+                document.getElementById('relPerf').textContent = perf + '%';
+            }
+        });
+    </script>
+</body>
+</html>
