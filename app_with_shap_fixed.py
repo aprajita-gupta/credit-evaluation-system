@@ -368,6 +368,34 @@ def get_dvfs_statistics():
 
 
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
+    print("\n" + "="*70)
+    print("🚀 Credit Evaluation System - SHAP + DVFS Enhanced")
+    print("="*70)
+    
+    if SHAP_AVAILABLE:
+        print("\n✅ SHAP is available - Explainability features enabled")
+    else:
+        print("\n⚠️  SHAP is not installed - Explainability features disabled")
+        print("   To enable SHAP: pip install shap")
+    
+    if DVFS_AVAILABLE:
+        print("✅ DVFS is available - Energy optimization enabled")
+        print("   Default: GPU (A100) with Balanced profile")
+    else:
+        print("⚠️  DVFS module not found - Using basic energy estimation")
+        print("   Add dvfs_enhanced.py to enable advanced energy metrics")
+    
+    print("\n🌐 Access the application at:")
+    print("   → http://localhost:5000")
+    print("   → http://127.0.0.1:5000")
+    
+    if DVFS_AVAILABLE:
+        print("\n📊 DVFS Statistics API:")
+        print("   → http://localhost:5000/api/dvfs_statistics")
+    
+    print("\n💡 Press CTRL+C to stop the server")
+    print("="*70 + "\n")
+    
+    if __name__ == '__main__':
+     port = int(os.environ.get('PORT', 5000))
+     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
