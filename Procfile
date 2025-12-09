@@ -1,0 +1,1 @@
+web: gunicorn --timeout 600 --workers 2 app_with_shap_fixed:app

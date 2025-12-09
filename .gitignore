@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.pyc
+*.pyo
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# Flask
+instance/
+.webassets-cache
+static/*.png
+static/*.csv
+static/ml_results*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+tmp/
+temp/
+
+# System files
+Thumbs.db
+desktop.ini
+
+# PDF research papers (keep in repo, optional)
+# *.pdf
+
+# Dataset (keep in repo)
+# loan_data_set.csv
